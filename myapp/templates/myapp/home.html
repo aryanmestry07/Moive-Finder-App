@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Movie Finder</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #121212;
+        color: #fff;
+        margin: 0;
+        padding: 20px;
+      }
+      h1 {
+        text-align: center;
+        color: #ffcc00;
+        animation: fadeInDown 1s ease-in-out;
+      }
+      form {
+        text-align: center;
+        margin-bottom: 30px;
+        position: relative;
+      }
+      input {
+        padding: 10px;
+        width: 70%;
+        max-width: 300px;
+        border-radius: 5px;
+        border: none;
+      }
+      button {
+        padding: 10px 15px;
+        border: none;
+        background: #ffcc00;
+        border-radius: 30px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+      }
+      button:hover {
+        background: #ff9900;
+        box-shadow: 0 0 10px rgba(255, 153, 0, 0.6);
+      }
+
+      /* Suggestions dropdown (fixed) */
+      #suggestions {
+        position: absolute;
+        top: 45px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 70%;
+        max-width: 300px;
+        background: #1e1e1e;
+        border-radius: 5px;
+        margin-top: 5px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        z-index: 1000;
+      }
+      .suggestion-item {
+        padding: 10px;
+        cursor: pointer;
+      }
+      .suggestion-item:hover {
+        background: #333;
+      }
+
+      /* Grid layout */
+      .movie-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 15px;
+        padding: 10px;
+      }
+      .movie-card {
+        background: #1e1e1e;
+        padding: 12px;
+        border-radius: 10px;
+        text-align: center;
+        transition: transform 0.3s ease-in-out;
+      }
+      .movie-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 4px 15px rgba(255, 204, 0, 0.4);
+      }
+
+      .movie-card img {
+        border-radius: 8px;
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+        opacity: 0;
+        transition: opacity 0.5s ease-in-out;
+      }
+
+      .movie-card h3 {
+        font-size: 1rem;
+        margin: 8px 0 5px;
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .movie-card p {
+        margin: 2px 0;
+        font-size: 0.9rem;
+      }
+
+      /* Pagination */
+      .pagination {
+        text-align: center;
+        margin-top: 20px;
+      }
+      .pagination a {
+        margin: 0 5px;
+        padding: 8px 12px;
+        background: #ffcc00;
+        color: #000;
+        border-radius: 5px;
+        text-decoration: none;
+      }
+      .pagination span {
+        margin: 0 10px;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
+        .movie-grid {
+          grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        }
+        .movie-card h3 {
+          font-size: 0.95rem;
+        }
+      }
+      @media (max-width: 480px) {
+        .movie-grid {
+          grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        }
+        .movie-card h3 {
+          font-size: 0.85rem;
+        }
+        input,
+        button {
+          width: 100%;
+          margin-bottom: 10px;
+        }
+        #suggestions {
+          width: 100%;
+          left: 0;
+          transform: none;
+        }
+      }
+
+      /* Animations */
+      @keyframes fadeInDown {
+        from {
+          opacity: 0;
+          transform: translateY(-30px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🎬 Movie Finder</h1>
+
+    <form id="searchForm" method="get" autocomplete="off">
+      <input
+        type="text"
+        id="searchInput"
+        name="q"
+        placeholder="Search for a movie..."
+        value="{{ request.GET.q }}"
+      />
+      <button type="submit">Search</button>
+      <div id="suggestions"></div>
+    </form>
+
+    <h2 style="color: #ffcc00; text-align: center">
+      {% if request.GET.q %} Search Results {% else %} Popular Movies ⭐ {% endif %}
+    </h2>
+
+    <div class="movie-grid">
+      {% for movie in movies %}
+      <div class="movie-card">
+        {% if movie.poster_path %}
+        <a href="{% url 'movie_detail' movie.id %}">
+          <img
+            src="https://image.tmdb.org/t/p/w200{{ movie.poster_path }}"
+            alt="{{ movie.title }}"
+            loading="lazy"
+            onload="this.style.opacity=1;"
+          />
+        </a>
+        {% endif %}
+        <h3>
+          <a href="{% url 'movie_detail' movie.id %}" style="color: white"
+            >{{ movie.title }}</a
+          >
+        </h3>
+        <p>⭐ {{ movie.vote_average }}/10</p>
+        <p>{{ movie.release_date }}</p>
+      </div>
+      {% empty %}
+      <p>No movies found.</p>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      {% if movies.has_previous %}
+      <a
+        href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ movies.previous_page_number }}"
+        >⬅ Prev</a
+      >
+      {% endif %}
+      <span>Page {{ movies.number }} of {{ movies.paginator.num_pages }}</span>
+      {% if movies.has_next %}
+      <a
+        href="?{% if request.GET.q %}q={{ request.GET.q }}&{% endif %}page={{ movies.next_page_number }}"
+        >Next ➡</a
+      >
+      {% endif %}
+    </div>
+
+    <!-- JS for live suggestions -->
+    <script>
+      const searchInput = document.getElementById("searchInput");
+      const suggestionsDiv = document.getElementById("suggestions");
+
+      searchInput.addEventListener("input", function () {
+        const query = this.value;
+        if (query.length < 2) {
+          suggestionsDiv.innerHTML = "";
+          return;
+        }
+
+        fetch(`/search-suggestions/?q=${query}`)
+          .then((res) => res.json())
+          .then((data) => {
+            suggestionsDiv.innerHTML = "";
+            if (data.suggestions.length > 0) {
+              data.suggestions.forEach((movie) => {
+                const item = document.createElement("div");
+                item.className = "suggestion-item";
+                item.textContent = movie.title;
+                item.onclick = () => {
+                  searchInput.value = movie.title;
+                  document.getElementById("searchForm").submit();
+                };
+                suggestionsDiv.appendChild(item);
+              });
+            }
+          });
+      });
+
+      // Close suggestions if clicked outside
+      document.addEventListener("click", (e) => {
+        if (!document.getElementById("searchForm").contains(e.target)) {
+          suggestionsDiv.innerHTML = "";
+        }
+      });
+    </script>
+  </body>
+</html>

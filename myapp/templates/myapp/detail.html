@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ movie.title }}</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #121212; 
+            color: #f5f5f5; 
+            margin: 0; 
+            padding: 20px; 
+        }
+        h1 { 
+            color: #ffcc00; 
+            animation: fadeInDown 1s ease-in-out;
+        }
+        a { 
+            color: #ffcc00; 
+            text-decoration: none; 
+            display: inline-block; 
+            margin-bottom: 20px; 
+            transition: color 0.3s; 
+        }
+        a:hover { color: #ff9900; }
+
+        /* Layout */
+        .container { 
+            display: flex; 
+            flex-wrap: wrap; 
+            gap: 30px; 
+            align-items: flex-start; 
+            animation: fadeInUp 0.8s ease-in-out; 
+        }
+        img.poster { 
+            border-radius: 10px; 
+            width: 300px; 
+            max-width: 100%; 
+            animation: zoomIn 1s ease-in-out; 
+        }
+        .info { 
+            flex: 1; 
+            max-width: 600px; 
+        }
+        .info p { line-height: 1.6; }
+
+        /* Cast */
+        .cast { 
+            margin-top: 30px; 
+        }
+        .cast h2 { 
+            color: #ffcc00; 
+            margin-bottom: 15px; 
+        }
+        .cast-list { 
+            display: flex; 
+            gap: 15px; 
+            overflow-x: auto; 
+            padding-bottom: 10px; 
+            scrollbar-width: thin; 
+            scrollbar-color: #ffcc00 #1e1e1e; 
+        }
+        .cast-list::-webkit-scrollbar { height: 8px; }
+        .cast-list::-webkit-scrollbar-thumb { background: #ffcc00; border-radius: 10px; }
+
+        .cast-member { 
+            min-width: 120px; 
+            background: #1e1e1e; 
+            border-radius: 10px; 
+            padding: 10px; 
+            text-align: center; 
+            flex-shrink: 0; 
+            transition: transform 0.3s; 
+            animation: fadeInUp 0.7s ease-in-out; 
+        }
+        .cast-member:hover { transform: scale(1.08); }
+        .cast-member img { 
+            border-radius: 50%; 
+            width: 80px; 
+            height: 80px; 
+            object-fit: cover; 
+            margin-bottom: 8px; 
+        }
+        .cast-member p { margin: 5px 0; font-weight: bold; }
+        .cast-member small { color: #bbb; }
+
+        /* Keyframes */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container { flex-direction: column; align-items: center; }
+            .info { max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <a href="/">⬅ Back to Search</a>
+    
+    <div class="container">
+        {% if movie.poster_path %}
+            <img class="poster" src="https://image.tmdb.org/t/p/w500{{ movie.poster_path }}" alt="{{ movie.title }}">
+        {% endif %}
+        <div class="info">
+            <h1>{{ movie.title }} ({{ movie.release_date }})</h1>
+            <p><strong>⭐ Rating:</strong> {{ movie.vote_average }}/10</p>
+            <p><strong>📖 Overview:</strong> {{ movie.overview }}</p>
+            <p><strong>⏳ Runtime:</strong> {{ movie.runtime }} minutes</p>
+            <p><strong>🎭 Genres:</strong> {% for g in movie.genres %}{{ g.name }} {% endfor %}</p>
+        </div>
+    </div>
+
+    <div class="cast">
+        <h2>👥 Top Cast</h2>
+        <div class="cast-list">
+            {% for member in cast %}
+                <div class="cast-member">
+                    {% if member.profile_path %}
+                        <img src="https://image.tmdb.org/t/p/w200{{ member.profile_path }}" alt="{{ member.name }}">
+                    {% endif %}
+                    <p>{{ member.name }}</p>
+                    <small>as {{ member.character }}</small>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>
